@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 ssh-keygen -A
 
-cat >  /opt/pam-keycloak-oidc/pam-keycloak-oidc.tml << EOF
+cat > /opt/pam-keycloak-oidc/pam-keycloak-oidc.tml << EOF
 # name of the dedicated OIDC client at Keycloak
 client-id="oidc-test.the-morpheus.org"
 # the secret of the dedicated client
@@ -24,7 +24,7 @@ access-token-signing-method="RS256"
 xor-key="scmi"
 EOF
 
-users=$(echo $USERS | tr ',' ' ')
+users=($(echo $USERS | tr ',' ' '))
 
 for user in ${users[@]}; do
  adduser --disabled-password $user
