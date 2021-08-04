@@ -24,69 +24,10 @@ access-token-signing-method="RS256"
 xor-key="scmi"
 EOF
 
-cat > /etc/pam.d/sshd << EOF
-# PAM configuration for the Secure Shell service (with OIDC support)
+users=$(echo $USERS | tr ',' ' ')
 
-# Open ID Connect Login
-account required                        pam_permit.so
-auth    [success=2 default=ignore]      pam_exec.so     expose_authtok  log=/var/log/pam-keycloak-oidc.log      /opt/pam-keycloak-oidc/pam-keycloak-oidc
-@include common-auth
-#auth    requisite                       pam_deny.so
-#auth    required                        pam_permit.so
+for user in ${users[@]}; do
+ adduser --disabled-password $user
+done
 
-# Disallow non-root logins when /etc/nologin exists.
-account    required     pam_nologin.so
-
-# Uncomment and edit /etc/security/access.conf if you need to set complex
-# access limits that are hard to express in sshd_config.
-# account  required     pam_access.so
-
-# Standard Un*x authorization.
-@include common-account
-
-# SELinux needs to be the first session rule.  This ensures that any
-# lingering context has been cleared.  Without this it is possible that a
-# module could execute code in the wrong domain.
-session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so close
-
-# Set the loginuid process attribute.
-session    required     pam_loginuid.so
-
-# Create a new session keyring.
-session    optional     pam_keyinit.so force revoke
-
-# Standard Un*x session setup and teardown.
-@include common-session
-
-# Print the message of the day upon successful login.
-# This includes a dynamically generated part from /run/motd.dynamic
-# and a static (admin-editable) part from /etc/motd.
-session    optional     pam_motd.so  motd=/run/motd.dynamic
-session    optional     pam_motd.so noupdate
-
-# Print the status of the user's mailbox upon successful login.
-session    optional     pam_mail.so standard noenv # [1]
-
-# Set up user limits from /etc/security/limits.conf.
-session    required     pam_limits.so
-
-# Read environment variables from /etc/environment and
-# /etc/security/pam_env.conf.
-session    required     pam_env.so # [1]
-# In Debian 4.0 (etch), locale-related environment variables were moved to
-# /etc/default/locale, so read that as well.
-session    required     pam_env.so user_readenv=1 envfile=/etc/default/locale
-
-# SELinux needs to intervene at login time to ensure that the process starts
-# in the proper default security context.  Only sessions which are intended
-# to run in the user's context should be run after this.
-session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so open
-
-# Standard Un*x password updating.
-@include common-password
-EOF
-
-echo "You must create all unix user accounts that you can login as the users. (adduser <name> --disabled-password)"
-echo "To start ssh: /usr/sbin/sshd -De"
-/bin/bash
-#/usr/sbin/sshd -De
+/usr/sbin/sshd -De
