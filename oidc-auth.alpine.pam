@@ -1,0 +1,3 @@
+# Open ID Connect Login
+account required                        pam_permit.so
+auth    [success=2 default=ignore]      pam_exec.so     expose_authtok  log=/var/log/pam-keycloak-oidc.log      /opt/pam-keycloak-oidc/pam-keycloak-oidc

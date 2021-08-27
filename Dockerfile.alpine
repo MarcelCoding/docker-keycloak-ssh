@@ -1,0 +1,29 @@
+FROM golang:alpine AS builder
+
+ARG PAM_KEYCLOAK_VERSION=r1.1.5
+
+RUN apk add --update --no-cache git \
+ && git clone --branch=${PAM_KEYCLOAK_VERSION} https://github.com/zhaow-de/pam-keycloak-oidc.git /go/src/github.com/zhaow-de/pam-keycloak-oidc
+
+WORKDIR /go/src/github.com/zhaow-de/pam-keycloak-oidc
+
+RUN go build -ldflags "-w -s" -o /go/bin/pam-keycloak-oidc github.com/zhaow-de/pam-keycloak-oidc
+
+FROM alpine
+
+RUN apk add --update --no-cache openssh-server openssh-server-pam bash sudo \
+ && sed -i 's/#UsePAM no/UsePAM yes/g' /etc/ssh/sshd_config \
+ && rm -rf /tmp/* /var/cache/apk/*
+
+ #&& sed -i '/^@include common-auth/i @include oidc-auth' /etc/pam.d/sudo \
+ #&& sed -i '/^@include common-auth/i @include oidc-auth' /etc/pam.d/sshd
+
+COPY oidc-auth.alpine.pam /etc/pam.d/oidc-auth.pam
+COPY sshd.alpine.pam /etc/pam.d/sshd.pam
+
+COPY --from=builder /go/bin/pam-keycloak-oidc /opt/pam-keycloak-oidc/pam-keycloak-oidc
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /opt/pam-keycloak-oidc/pam-keycloak-oidc /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

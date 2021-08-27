@@ -1,0 +1,7 @@
+auth             include                         oidc-auth
+
+#account         include                         base-account
+
+#auth            required                        pam_env.so
+#auth            required                        pam_nologin.so  successok
+#auth            required                        pam_unix.so      md5 sha512
