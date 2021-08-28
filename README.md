@@ -8,7 +8,7 @@ Edit the values in the `entrypoint.sh`
 
 | Name | Description |
 |------|-------------|
-| `USERS` | Comma seperated list of users, witch should be created. |
+| `USERS` | Comma seperated list of users, which should be created. |
 
 
 ## [Keycloak Setup](https://github.com/zhaow-de/pam-keycloak-oidc#installation)
